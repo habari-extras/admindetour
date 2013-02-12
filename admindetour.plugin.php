@@ -36,27 +36,35 @@ class admindetour extends Plugin {
 		return $mainmenus;
 	}
 	
-	public function filter_plugin_config( $actions )
+	public function filter_plugin_config( $actions, $plugin_id )
 	{
-		$actions[] = _t('Configure');
+		if ( $plugin_id == $this->plugin_id() ) {
+			$actions[] = _t('Configure');
+		}
+
 		return $actions;
 	}
 	
-	public function configure( $plugin_id, $action )
+	public function action_plugin_ui( $plugin_id, $action )
 	{
-		$mainmenus = array();
-		foreach ($this->mainmenus as $mainmenu) {
-			$mainmenus[$mainmenu['url']] = $mainmenu['text'];
-		}
-		
-		$ui = new FormUI( strtolower( get_class( $this ) ) );
-		$ui->append( 'select', 'mainmenus', 'user:admindetour_fake', _t('Select the wanted admin frontpage:') );
-		$ui->mainmenus->options = $mainmenus;
+		if ( $plugin_id == $this->plugin_id() ) {
+			switch ( $action ) {
+				case _t('Configure'):
+					$mainmenus = array();
+					foreach ($this->mainmenus as $mainmenu) {
+						$mainmenus[$mainmenu['url']] = $mainmenu['text'];
+					}
+					
+					$ui = new FormUI( strtolower( get_class( $this ) ) );
+					$ui->append( 'select', 'mainmenus', 'user:admindetour_fake', _t('Select the wanted admin frontpage:') );
+					$ui->mainmenus->options = $mainmenus;
 
-		$ui->append( 'submit', 'save', _t('Save') );
-		$ui->on_success( array( $this, 'save_mainmenu' ) );
-		$ui->out();
-		break;
+					$ui->append( 'submit', 'save', _t('Save') );
+					$ui->on_success( array( $this, 'save_mainmenu' ) );
+					$ui->out();
+					break;
+			}
+		}
 	}
 	
 	public function save_mainmenu($form)
@@ -104,6 +112,5 @@ class admindetour extends Plugin {
 
 		$form->save();
 	}
-
 }
 ?>
