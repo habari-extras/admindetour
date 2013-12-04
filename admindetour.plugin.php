@@ -57,6 +57,9 @@ class admindetour extends Plugin {
 					
 					$ui = new FormUI( strtolower( get_class( $this ) ) );
 					$ui->append( 'select', 'mainmenus', 'user:admindetour_fake', _t('Select the wanted admin frontpage:') );
+					if(User::identify()->can('super_user')) {
+						$ui->append( 'checkbox', 'affect_all', 'null:null', _t('Force detour for all users'));
+					}
 					$ui->mainmenus->options = $mainmenus;
 
 					$ui->append( 'submit', 'save', _t('Save') );
@@ -107,7 +110,15 @@ class admindetour extends Plugin {
 
 		$rule = $matched_rule->name;
 		$args = array_merge($matched_rule->named_arg_values, $args);
-		User::identify()->info->admindetour_real = array( 'rule' => $rule, 'args' => $args );
+		if(User::identify()->can('super_user') && $form->affect_all->value == true) {
+			foreach(Users::get_all() as $user) {
+				$user->info->admindetour_real = array( 'rule' => $rule, 'args' => $args );
+				$user->update();
+			}
+		}
+		else {
+			User::identify()->info->admindetour_real = array( 'rule' => $rule, 'args' => $args );
+		}
 		$_POST[$form->mainmenus->field] = URL::get( $rule, $args );
 
 		$form->save();
