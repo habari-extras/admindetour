@@ -19,12 +19,13 @@ class admindetour extends Plugin {
 		return $db_rules;
 	}
 	
-	public function action_before_act_admin( $that ) 
+	public function filter_login_redirect_dest( $login_dest, $user, $login_session )
 	{
-		if (!isset($that->handler_vars['page'])) {
-			$args = User::identify()->info->admindetour_real['args'];
-			$that->handler_vars = $that->handler_vars->merge( $args );
+		if(isset($user->info->admindetour_real) && !empty($user->info->admindetour_real)) {
+			$redir = $user->info->admindetour_real;
+			return URL::get($redir['rule'], $redir['args']);
 		}
+		else return $login_dest;
 	}
 	
 	public function filter_adminhandler_post_loadplugins_main_menu( $mainmenus )
